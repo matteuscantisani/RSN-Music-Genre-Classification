@@ -15,10 +15,44 @@ O projeto contempla desde a construção do dataset até o treinamento e avalia�
 * Comparar diferentes arquiteturas de aprendizado de máquina.
 
 ---
+# Tecnologias
 
-# Gêneros Musicais
+* Python
+* Librosa
+* NumPy
+* Pandas
+* SciPy
+* Pydub
+* SoundFile
+* TensorFlow (modelos)
+* Matplotlib
 
-## GTZAN Original
+---
+# Requisitos
+
+Instale as dependências necessárias com:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+# Dataset
+
+O projeto utiliza como base o **GTZAN Music Genre Dataset**, complementado com três gêneros brasileiros para fins de pesquisa.
+
+Cada amostra possui:
+
+* duração de 30 segundos;
+* frequência de amostragem de 22.050 Hz;
+* áudio mono;
+* formato WAV.
+
+---
+
+## Gêneros Musicais
+
+### GTZAN Original
 
 * Blues
 * Classical
@@ -31,7 +65,7 @@ O projeto contempla desde a construção do dataset até o treinamento e avalia�
 * Reggae
 * Rock
 
-## Gêneros Brasileiros
+### Gêneros Brasileiros
 
 * Samba/Pagode
 * Forró
@@ -52,7 +86,7 @@ O dataset é montado em 6 etapas, executando os scripts em `data_loader/scripts/
 | `04_build_dataset.py` | Organização do dataset por gênero |
 | `05_add_gtzan.py` | Integração com GTZan |
 
-Para executar tudo de uma vez:
+Para executar todos os scripts de uma vez execute na raiz:
 
 ```bash
 python3 baixar_dataset.py
@@ -60,43 +94,9 @@ python3 baixar_dataset.py
 
 ---
 
-# Tecnologias
-
-* Python
-* Librosa
-* NumPy
-* Pandas
-* SciPy
-* Pydub
-* SoundFile
-* TensorFlow (modelos)
-* Matplotlib
-
----
-
-# Dataset
-
-O projeto utiliza como base o **GTZAN Music Genre Dataset**, complementado com três gêneros brasileiros para fins de pesquisa.
-
-Cada amostra possui:
-
-* duração de 30 segundos;
-* frequência de amostragem de 22.050 Hz;
-* áudio mono;
-* formato WAV.
-
----
 
 
-# Requisitos
 
-Instale as dependências com:
-
-```bash
-pip install -r requirements.txt
-```
-
----
 
 # Autores
 
