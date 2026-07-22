@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Dados baixados
+data_loader/data/genres.tar.gz
+
+# Dados extraídos/convertidos/segmentados
+data_loader/data/raw/
+data_loader/data/wav/
+data_loader/data/segments/
+
+# Temp
+data_loader/data/gtzan_raw/
