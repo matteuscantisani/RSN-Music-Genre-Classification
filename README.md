@@ -39,19 +39,24 @@ O projeto contempla desde a construção do dataset até o treinamento e avalia�
 
 ---
 
-# Pipeline
+# Pipeline para construção do dataset
 
-O pipeline completo é composto pelas seguintes etapas:
+O dataset é montado em 6 etapas, executando os scripts em `data_loader/scripts/` em ordem:
 
-1. Extração dos arquivos compactados.
-2. Conversão dos áudios para o padrão GTZAN:
+| Script | Etapa |
+|---|---|
+| `00_download.py` | Download dos zips do HuggingFace |
+| `01_extract.py` | Extração dos áudios compactados |
+| `02_convert.py` | Conversão para WAV 22.050 Hz mono PCM 16 bits |
+| `03_select_segment.py` | Seleção do trecho mais representativo (30s) |
+| `04_build_dataset.py` | Organização do dataset por gênero |
+| `05_add_gtzan.py` | Integração com GTZan |
 
-   * WAV
-   * 22.050 Hz
-   * Mono
-   * PCM 16 bits
-3. Seleção automática do trecho mais representativo de 30 segundos.
-4. Organização do dataset por gênero.
+Para executar tudo de uma vez:
+
+```bash
+python3 baixar_dataset.py
+```
 
 ---
 
