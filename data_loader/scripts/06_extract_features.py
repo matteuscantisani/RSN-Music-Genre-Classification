@@ -73,6 +73,25 @@ def extract_segment_features(y_seg, sr):
 
     return features
 
+def extract_mel_spectrogram(y_seg, sr, n_mels=128, n_fft=2048, hop_length=512):
+    mel_spec = librosa.feature.melspectrogram(
+        y=y_seg, 
+        sr=sr, 
+        n_fft=n_fft, 
+        hop_length=hop_length, 
+        n_mels=n_mels
+    )
+    
+    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+    
+    # 3. Adiciona a dimensão de "canal" (Channel)
+    # Bibliotecas como Keras/TensorFlow esperam tensores no formato (altura, largura, canais).
+    # O espectrograma original tem o formato (n_mels, tempo).
+    # O np.newaxis transforma isso em (n_mels, tempo, 1), simulando uma imagem de 1 canal.
+    mel_spec_cnn = mel_spec_db[..., np.newaxis] 
+    
+    return mel_spec_cnn
+
 if __name__ == "__main__":
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
