@@ -1,8 +1,9 @@
+import os
 import warnings
 from pathlib import Path
 import librosa
 import numpy as np
-import pandas as pd
+from numpy.lib.format import open_memmap
 
 # comentarios para melhor entendimento do codigo
 
@@ -114,17 +115,38 @@ def main():
     print(f"Segmentos por track: {NUM_SEGMENTS}")
     print()
 
+    # descobre as dimensoes das features usando um segmento de silencio
     n_features = len(extract_segment_features(np.zeros(SAMPLES_PER_SEGMENT), SR))
-    X_svm = np.zeros((n_tracks, n_features), dtype=np.float32)
-    y_svm = np.zeros(n_tracks, dtype=np.int32)
+    mel_shape = extract_mel_spectrogram(np.zeros(SAMPLES_PER_SEGMENT), SR).shape
 
-    cnn_segments = []
-    y_cnn_segments = []
+    svm_dir = FEATURES_DIR / "svm"
+    svm_dir.mkdir(parents=True, exist_ok=True)
+    cnn_dir = FEATURES_DIR / "cnn"
+    cnn_dir.mkdir(parents=True, exist_ok=True)
+
+    # Os espectrogramas sao escritos direto no disco (memmap) em vez de
+    # acumulados em RAM: o dataset completo tem ~1 GB e nao cabe na memoria
+    # junto com o resto do processo.
+    tmp_cnn_path = cnn_dir / "X_segments.tmp.npy"
+    max_segments = n_tracks * NUM_SEGMENTS
+    X_cnn = open_memmap(
+        tmp_cnn_path, mode="w+", dtype=np.float32, shape=(max_segments, *mel_shape)
+    )
+
+    # listas em vez de arrays pre-alocados: arquivos corrompidos sao pulados
+    # sem deixar linhas zeradas com label valido no dataset do SVM
+    svm_rows = []
+    svm_labels = []
+    y_cnn = []
+    track_ids = []
+
+    n_valid_tracks = 0
+    n_segments_written = 0
+    n_skipped = 0
 
     for idx, wav_path in enumerate(wav_files):
         genre = wav_path.name.split(".")[0]
         label = genre_to_idx[genre]
-        y_svm[idx] = label
 
         if idx % 50 == 0:
             print(f"[{idx}/{n_tracks}] {wav_path.name}")
@@ -132,42 +154,84 @@ def main():
         try:
             y, sr = librosa.load(wav_path, sr=SR, mono=True, duration=TOTAL_DURATION)
         except Exception as e:
-            print(f"Skipping {wav_path} because it is corrupted. Error: {e}")
-            continue  # This will skip to the next audio file in your loop
+            print(f"Pulando {wav_path.name} (corrompido): {e}")
+            n_skipped += 1
+            continue
         if len(y) < SAMPLES_PER_TRACK:
             y = np.pad(y, (0, SAMPLES_PER_TRACK - len(y)))
 
+        # processa a track inteira antes de gravar qualquer coisa, para que
+        # uma falha no meio nao deixe dados parciais nos arquivos de saida
         seg_features = []
+        track_mels = []
         for seg_idx in range(NUM_SEGMENTS):
             start = seg_idx * SAMPLES_PER_SEGMENT
             end = start + SAMPLES_PER_SEGMENT
             y_seg = y[start:end]
 
             seg_features.append(list(extract_segment_features(y_seg, sr).values()))
+            track_mels.append(extract_mel_spectrogram(y_seg, sr))
 
-            mel = extract_mel_spectrogram(y_seg, sr)
-            cnn_segments.append(mel)
-            y_cnn_segments.append(label)
+        for mel in track_mels:
+            X_cnn[n_segments_written] = mel
+            y_cnn.append(label)
+            track_ids.append(n_valid_tracks)
+            n_segments_written += 1
 
-        X_svm[idx] = np.array(seg_features, dtype=np.float32).mean(axis=0)
+        svm_rows.append(np.array(seg_features, dtype=np.float32).mean(axis=0))
+        svm_labels.append(label)
+        n_valid_tracks += 1
 
-    X_cnn = np.array(cnn_segments, dtype=np.float32)
-    y_cnn = np.array(y_cnn_segments, dtype=np.int32)
+    X_cnn.flush()
+    del X_cnn
 
-    svm_dir = FEATURES_DIR / "svm"
-    svm_dir.mkdir(parents=True, exist_ok=True)
+    if n_valid_tracks == 0:
+        print("Nenhuma track valida processada.")
+        tmp_cnn_path.unlink()
+        return
+
+    if n_skipped:
+        print(f"\n{n_skipped} arquivo(s) corrompido(s) ignorado(s)")
+
+    X_svm = np.stack(svm_rows).astype(np.float32)
+    y_svm = np.array(svm_labels, dtype=np.int32)
+    assert X_svm.shape == (n_valid_tracks, n_features)
+
     np.save(svm_dir / "X.npy", X_svm)
     np.save(svm_dir / "y.npy", y_svm)
     np.save(svm_dir / "classes.npy", np.array(genres))
     print(f"\nSVM: X {X_svm.shape}, y {y_svm.shape} -> {svm_dir}/")
 
-    cnn_dir = FEATURES_DIR / "cnn"
-    cnn_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Salvando {len(cnn_segments)} spectrograms CNN ...")
-    np.save(cnn_dir / "X_segments.npy", X_cnn)
+    # finaliza o X do CNN: se nenhuma track foi pulada o arquivo temporario ja
+    # esta completo; senao, copia so os segmentos validos (em blocos, sem
+    # carregar tudo na RAM) e descarta o resto
+    final_cnn_path = cnn_dir / "X_segments.npy"
+    print(f"Salvando {n_segments_written} espectrogramas CNN ...")
+    if n_segments_written == max_segments:
+        os.replace(tmp_cnn_path, final_cnn_path)
+    else:
+        src = np.load(tmp_cnn_path, mmap_mode="r")
+        dst = open_memmap(
+            final_cnn_path,
+            mode="w+",
+            dtype=np.float32,
+            shape=(n_segments_written, *mel_shape),
+        )
+        chunk = 500
+        for start in range(0, n_segments_written, chunk):
+            end = min(start + chunk, n_segments_written)
+            dst[start:end] = src[start:end]
+        dst.flush()
+        del src, dst
+        tmp_cnn_path.unlink()
+
+    y_cnn = np.array(y_cnn, dtype=np.int32)
+    track_ids = np.array(track_ids, dtype=np.int32)
     np.save(cnn_dir / "y_segments.npy", y_cnn)
+    np.save(cnn_dir / "track_ids.npy", track_ids)
     np.save(cnn_dir / "classes.npy", np.array(genres))
-    print(f"CNN: X {X_cnn.shape}, y {y_cnn.shape} -> {cnn_dir}/")
+    print(f"CNN: X ({n_segments_written}, {mel_shape[0]}, {mel_shape[1]}, {mel_shape[2]}), "
+          f"y {y_cnn.shape}, track_ids {track_ids.shape} -> {cnn_dir}/")
 
     print("\nExtracao concluida!")
 
