@@ -129,7 +129,11 @@ def main():
         if idx % 50 == 0:
             print(f"[{idx}/{n_tracks}] {wav_path.name}")
 
-        y, sr = librosa.load(wav_path, sr=SR, mono=True, duration=TOTAL_DURATION)
+        try:
+            y, sr = librosa.load(wav_path, sr=SR, mono=True, duration=TOTAL_DURATION)
+        except Exception as e:
+            print(f"Skipping {wav_path} because it is corrupted. Error: {e}")
+            continue  # This will skip to the next audio file in your loop
         if len(y) < SAMPLES_PER_TRACK:
             y = np.pad(y, (0, SAMPLES_PER_TRACK - len(y)))
 
