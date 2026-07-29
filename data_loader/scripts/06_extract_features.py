@@ -12,6 +12,9 @@ NUM_SEGMENTS = 10
 SAMPLES_PER_TRACK = SR * TOTAL_DURATION # nde pontos numericos 
 SAMPLES_PER_SEGMENT = SAMPLES_PER_TRACK // NUM_SEGMENTS #total de amostras de um áudio
 
+FINAL_DATASET_DIR = Path("data_loader/data/final_dataset")
+FEATURES_DIR = Path("data_loader/data/features")
+
 def extract_segment_features(y_seg, sr):
     features = {}
 
@@ -92,8 +95,79 @@ def extract_mel_spectrogram(y_seg, sr, n_mels=128, n_fft=2048, hop_length=512):
     
     return mel_spec_cnn
 
-if __name__ == "__main__":
+def main():
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
 
+
+    wav_files = sorted(FINAL_DATASET_DIR.glob("*.wav"))
+    if not wav_files:
+        print("Nenhum arquivo WAV encontrado em final_dataset/")
+        return
+
+    genres = sorted(set(f.name.split(".")[0] for f in wav_files))
+    genre_to_idx = {g: i for i, g in enumerate(genres)}
+    n_tracks = len(wav_files)
+
+    print(f"Gêneros: {genres}")
+    print(f"Tracks: {n_tracks}")
+    print(f"Segmentos por track: {NUM_SEGMENTS}")
+    print()
+
+    n_features = len(extract_segment_features(np.zeros(SAMPLES_PER_SEGMENT), SR))
+    X_svm = np.zeros((n_tracks, n_features), dtype=np.float32)
+    y_svm = np.zeros(n_tracks, dtype=np.int32)
+
+    cnn_segments = []
+    y_cnn_segments = []
+
+    for idx, wav_path in enumerate(wav_files):
+        genre = wav_path.name.split(".")[0]
+        label = genre_to_idx[genre]
+        y_svm[idx] = label
+
+        if idx % 50 == 0:
+            print(f"[{idx}/{n_tracks}] {wav_path.name}")
+
+        y, sr = librosa.load(wav_path, sr=SR, mono=True, duration=TOTAL_DURATION)
+        if len(y) < SAMPLES_PER_TRACK:
+            y = np.pad(y, (0, SAMPLES_PER_TRACK - len(y)))
+
+        seg_features = []
+        for seg_idx in range(NUM_SEGMENTS):
+            start = seg_idx * SAMPLES_PER_SEGMENT
+            end = start + SAMPLES_PER_SEGMENT
+            y_seg = y[start:end]
+
+            seg_features.append(list(extract_segment_features(y_seg, sr).values()))
+
+            mel = extract_mel_spectrogram(y_seg, sr)
+            cnn_segments.append(mel)
+            y_cnn_segments.append(label)
+
+        X_svm[idx] = np.array(seg_features, dtype=np.float32).mean(axis=0)
+
+    X_cnn = np.array(cnn_segments, dtype=np.float32)
+    y_cnn = np.array(y_cnn_segments, dtype=np.int32)
+
+    svm_dir = FEATURES_DIR / "svm"
+    svm_dir.mkdir(parents=True, exist_ok=True)
+    np.save(svm_dir / "X.npy", X_svm)
+    np.save(svm_dir / "y.npy", y_svm)
+    np.save(svm_dir / "classes.npy", np.array(genres))
+    print(f"\nSVM: X {X_svm.shape}, y {y_svm.shape} -> {svm_dir}/")
+
+    cnn_dir = FEATURES_DIR / "cnn"
+    cnn_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Salvando {len(cnn_segments)} spectrograms CNN ...")
+    np.save(cnn_dir / "X_segments.npy", X_cnn)
+    np.save(cnn_dir / "y_segments.npy", y_cnn)
+    np.save(cnn_dir / "classes.npy", np.array(genres))
+    print(f"CNN: X {X_cnn.shape}, y {y_cnn.shape} -> {cnn_dir}/")
+
+    print("\nExtracao concluida!")
+
+
+if __name__ == "__main__":
+    main()
 
