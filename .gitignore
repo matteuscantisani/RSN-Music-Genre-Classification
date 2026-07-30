@@ -21,3 +21,5 @@ data_loader/data/features/
 
 # Zips (baixados pelo 00_download.py)
 data_loader/data/zip/
+
+.venv/
