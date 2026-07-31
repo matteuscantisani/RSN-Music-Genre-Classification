@@ -124,7 +124,7 @@ def make_dataset(X, y, indices, input_shape, shuffle=False):
     ds = ds.map(map_fn, num_parallel_calls=tf.data.AUTOTUNE)
     return ds.prefetch(tf.data.AUTOTUNE)
 
-
+"""nos baseamos no paper https://arxiv.org/html/2509.01762v1"""
 def build_model(input_shape, n_classes):
     model = tf.keras.Sequential(
         [
