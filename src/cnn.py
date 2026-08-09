@@ -2,6 +2,11 @@ import numpy as np
 from pathlib import Path
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
+import matplotlib
+matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
 
 RANDOM_STATE = 42
 SEGMENTS_PER_TRACK = 10
@@ -9,7 +14,11 @@ TEST_SIZE = 0.2
 VAL_SIZE = 0.125
 BATCH_SIZE = 32
 
-FEATURES_DIR = Path(__file__).resolve().parent.parent / "features" / "cnn"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+FEATURES_DIR = ROOT_DIR / "features" / "cnn"
+RESULTS_DIR = ROOT_DIR / "results"
+MODELS_DIR = ROOT_DIR / "models"
+
 DB_OFFSET = 80.0
 
 #load X, y, classes from .npy
@@ -114,6 +123,39 @@ def main():
         callbacks=callbacks,
         verbose=2,
     )
+
+    # ---- avaliação por segmento ----
+    probs = model.predict(test_ds, verbose=0)
+    y_test = y[test_idx]                 # rótulos reais dos segmentos de teste
+    y_pred_seg = probs.argmax(axis=1)    # classe com maior probabilidade, por segmento
+    seg_accuracy = accuracy_score(y_test, y_pred_seg)
+    print(f"Acurácia (por segmento): {seg_accuracy:.4f}")
+    print(classification_report(y_test, y_pred_seg, target_names=classes, zero_division=0))
+
+    # ---- avaliação por track: média das probabilidades softmax dos 10 segmentos ----
+    test_track_ids = track_ids[test_idx]
+    unique_test_tracks = np.unique(test_track_ids)
+    track_probs = np.stack(
+        [probs[test_track_ids == t].mean(axis=0) for t in unique_test_tracks]
+    )
+    y_true_track = np.array([y_test[test_track_ids == t][0] for t in unique_test_tracks])
+    y_pred_track = track_probs.argmax(axis=1)
+    track_accuracy = accuracy_score(y_true_track, y_pred_track)
+    print(f"Acurácia (por track): {track_accuracy:.4f}")
+    print(classification_report(y_true_track, y_pred_track, target_names=classes, zero_division=0))
+
+    # ---- salvar ----
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    cm = confusion_matrix(y_true_track, y_pred_track)
+    fig, ax = plt.subplots(figsize=(12, 10))
+    ConfusionMatrixDisplay(cm, display_labels=classes).plot(ax=ax, cmap="Blues", xticks_rotation=45)
+    ax.set_title(f"CNN - Matriz de Confusão por track (teste: {track_accuracy:.2%})")
+    fig.tight_layout()
+    fig.savefig(RESULTS_DIR / "confusion_matrix_cnn.png", dpi=150)
+
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    model.save(MODELS_DIR / "cnn_model.keras")
+    print("Modelo salvo em models/cnn_model.keras")
 
 if __name__ == "__main__":
     main()
