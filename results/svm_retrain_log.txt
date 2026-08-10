@@ -1,0 +1,36 @@
+Dados: X (1300, 91), y (1300,), 13 gêneros
+Gêneros: [np.str_('Forró'), np.str_('Funk'), np.str_('Samba_Pagode'), np.str_('blues'), np.str_('classical'), np.str_('country'), np.str_('disco'), np.str_('hiphop'), np.str_('jazz'), np.str_('metal'), np.str_('pop'), np.str_('reggae'), np.str_('rock')]
+
+Treino: 1040 amostras | Teste: 260 amostras
+
+Executando grid search...
+Fitting 5 folds for each of 16 candidates, totalling 80 fits
+
+Melhores hiperparâmetros: {'svm__C': 10, 'svm__gamma': 0.01, 'svm__kernel': 'rbf'}
+Melhor acurácia (CV no treino): 0.7500
+
+Acurácia no teste: 0.6885
+
+Relatório por gênero:
+              precision    recall  f1-score   support
+
+       Forró       0.64      0.70      0.67        20
+        Funk       0.83      0.75      0.79        20
+Samba_Pagode       0.61      0.55      0.58        20
+       blues       0.81      0.85      0.83        20
+   classical       0.89      0.80      0.84        20
+     country       0.60      0.60      0.60        20
+       disco       0.70      0.70      0.70        20
+      hiphop       0.64      0.80      0.71        20
+        jazz       0.78      0.70      0.74        20
+       metal       0.81      0.85      0.83        20
+         pop       0.62      0.75      0.68        20
+      reggae       0.65      0.55      0.59        20
+        rock       0.39      0.35      0.37        20
+
+    accuracy                           0.69       260
+   macro avg       0.69      0.69      0.69       260
+weighted avg       0.69      0.69      0.69       260
+
+Matriz de confusão salva em /home/juliacruzandrade/RSN-Music-Genre-Classification/results/confusion_matrix_svm.png
+Modelo salvo em /home/juliacruzandrade/RSN-Music-Genre-Classification/models/svm_model.joblib

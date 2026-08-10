@@ -1,0 +1,13 @@
+Comparação SVM vs CNN — modelos salvos, mesmo conjunto de teste
+(bootstrap BCa, 10000 reamostragens, IC de 95%)
+
+Tracks de teste: 260 (split estratificado, seed 42)
+
+SVM: acurácia = 0.6885  IC 95% = [0.6308, 0.7423]
+CNN: acurácia = 0.7500  IC 95% = [0.6923, 0.8000]
+
+Diferença pareada (CNN - SVM): +0.0615  IC 95% = [+0.0001, +0.1192]
+Pares discordantes: só CNN acerta = 39, só SVM acerta = 23
+Teste de McNemar (exato): p = 0.0559
+
+Resultado limítrofe: os dois testes discordam (IC 95% exclui 0; McNemar p = 0.0559). Há evidência fraca de que CNN seja superior, mas não conclusiva ao nível de 95%.
