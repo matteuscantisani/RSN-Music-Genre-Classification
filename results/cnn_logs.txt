@@ -1,0 +1,122 @@
+(.venv) araujo@araujo-hp:~/programming/RSN-Music-Genre-Classification$ python3 src/cnn.py 
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1786373880.212151   12544 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1786373880.212553   12544 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+I0000 00:00:1786373880.292101   12544 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1786373882.576662   12544 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1786373882.577143   12544 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+Dados: X (13000, 128, 130, 1), y (13000,), 13 gêneros
+Segmentos - treino: 9100 | validação: 1300 | teste: 2600
+E0000 00:00:1786373884.819254   12544 cuda_platform.cc:52] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (303)
+Model: "sequential"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)                         ┃ Output Shape                ┃         Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ conv2d (Conv2D)                      │ (None, 126, 128, 32)        │             320 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ max_pooling2d (MaxPooling2D)         │ (None, 63, 64, 32)          │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv2d_1 (Conv2D)                    │ (None, 61, 62, 64)          │          18,496 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ max_pooling2d_1 (MaxPooling2D)       │ (None, 30, 31, 64)          │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ flatten (Flatten)                    │ (None, 59520)               │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dense (Dense)                        │ (None, 128)                 │       7,618,688 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout (Dropout)                    │ (None, 128)                 │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dense_1 (Dense)                      │ (None, 13)                  │           1,677 │
+└──────────────────────────────────────┴─────────────────────────────┴─────────────────┘
+ Total params: 7,639,181 (29.14 MB)
+ Trainable params: 7,639,181 (29.14 MB)
+ Non-trainable params: 0 (0.00 B)
+/home/araujo/programming/RSN-Music-Genre-Classification/.venv/lib/python3.12/site-packages/keras/src/trainers/epoch_iterator.py:74: UserWarning: `shuffle=True` was passed, but will be ignored since the data `x` was provided as a tf.data.Dataset. The Dataset is expected to already be shuffled (via `.shuffle(buffer_size)`).
+  self.data_adapter = data_adapters.get_data_adapter(
+Epoch 1/60
+285/285 - 50s - 175ms/step - accuracy: 0.3157 - loss: 1.9823 - val_accuracy: 0.4154 - val_loss: 1.6611 - learning_rate: 0.0010
+Epoch 2/60
+285/285 - 50s - 174ms/step - accuracy: 0.5082 - loss: 1.4446 - val_accuracy: 0.5377 - val_loss: 1.3739 - learning_rate: 0.0010
+Epoch 3/60
+285/285 - 52s - 184ms/step - accuracy: 0.6090 - loss: 1.1487 - val_accuracy: 0.5662 - val_loss: 1.3142 - learning_rate: 0.0010
+Epoch 4/60
+285/285 - 51s - 180ms/step - accuracy: 0.6886 - loss: 0.9300 - val_accuracy: 0.6077 - val_loss: 1.2361 - learning_rate: 0.0010
+Epoch 5/60
+285/285 - 50s - 175ms/step - accuracy: 0.7489 - loss: 0.7450 - val_accuracy: 0.6100 - val_loss: 1.2167 - learning_rate: 0.0010
+Epoch 6/60
+285/285 - 49s - 173ms/step - accuracy: 0.8042 - loss: 0.5785 - val_accuracy: 0.6354 - val_loss: 1.2772 - learning_rate: 0.0010
+Epoch 7/60
+285/285 - 43s - 152ms/step - accuracy: 0.8507 - loss: 0.4418 - val_accuracy: 0.6123 - val_loss: 1.4259 - learning_rate: 0.0010
+Epoch 8/60
+285/285 - 34s - 119ms/step - accuracy: 0.8827 - loss: 0.3462 - val_accuracy: 0.6385 - val_loss: 1.3469 - learning_rate: 0.0010
+Epoch 9/60
+285/285 - 34s - 119ms/step - accuracy: 0.9069 - loss: 0.2659 - val_accuracy: 0.6415 - val_loss: 1.4362 - learning_rate: 0.0010
+Epoch 10/60
+285/285 - 38s - 134ms/step - accuracy: 0.9405 - loss: 0.1853 - val_accuracy: 0.6446 - val_loss: 1.5766 - learning_rate: 5.0000e-04
+Epoch 11/60
+285/285 - 37s - 129ms/step - accuracy: 0.9443 - loss: 0.1644 - val_accuracy: 0.6408 - val_loss: 1.6747 - learning_rate: 5.0000e-04
+Epoch 12/60
+285/285 - 39s - 136ms/step - accuracy: 0.9581 - loss: 0.1323 - val_accuracy: 0.6300 - val_loss: 1.6193 - learning_rate: 5.0000e-04
+Epoch 13/60
+285/285 - 41s - 142ms/step - accuracy: 0.9635 - loss: 0.1157 - val_accuracy: 0.6608 - val_loss: 1.7223 - learning_rate: 5.0000e-04
+Epoch 14/60
+285/285 - 40s - 141ms/step - accuracy: 0.9698 - loss: 0.0913 - val_accuracy: 0.6546 - val_loss: 1.7390 - learning_rate: 2.5000e-04
+Epoch 15/60
+285/285 - 37s - 129ms/step - accuracy: 0.9714 - loss: 0.0853 - val_accuracy: 0.6546 - val_loss: 1.8018 - learning_rate: 2.5000e-04
+Epoch 16/60
+285/285 - 41s - 143ms/step - accuracy: 0.9756 - loss: 0.0773 - val_accuracy: 0.6400 - val_loss: 1.9154 - learning_rate: 2.5000e-04
+Epoch 17/60
+285/285 - 40s - 142ms/step - accuracy: 0.9730 - loss: 0.0809 - val_accuracy: 0.6485 - val_loss: 1.8664 - learning_rate: 2.5000e-04
+Epoch 18/60
+285/285 - 39s - 136ms/step - accuracy: 0.9805 - loss: 0.0641 - val_accuracy: 0.6600 - val_loss: 1.9093 - learning_rate: 1.2500e-04
+Epoch 19/60
+285/285 - 41s - 143ms/step - accuracy: 0.9803 - loss: 0.0629 - val_accuracy: 0.6523 - val_loss: 1.9507 - learning_rate: 1.2500e-04
+Epoch 20/60
+285/285 - 37s - 130ms/step - accuracy: 0.9816 - loss: 0.0573 - val_accuracy: 0.6515 - val_loss: 1.9074 - learning_rate: 1.2500e-04
+Epoch 21/60
+285/285 - 40s - 140ms/step - accuracy: 0.9811 - loss: 0.0595 - val_accuracy: 0.6531 - val_loss: 1.9302 - learning_rate: 1.2500e-04
+Acurácia (por segmento): 0.6612
+              precision    recall  f1-score   support
+
+       Forró       0.50      0.74      0.59       200
+        Funk       0.70      0.72      0.71       200
+Samba_Pagode       0.53      0.57      0.55       200
+       blues       0.72      0.73      0.73       200
+   classical       0.82      0.69      0.75       200
+     country       0.66      0.54      0.59       200
+       disco       0.68      0.57      0.62       200
+      hiphop       0.68      0.67      0.67       200
+        jazz       0.67      0.65      0.66       200
+       metal       0.89      0.87      0.88       200
+         pop       0.71      0.71      0.71       200
+      reggae       0.72      0.74      0.73       200
+        rock       0.41      0.38      0.40       200
+
+    accuracy                           0.66      2600
+   macro avg       0.67      0.66      0.66      2600
+weighted avg       0.67      0.66      0.66      2600
+
+Acurácia (por track): 0.7692
+              precision    recall  f1-score   support
+
+       Forró       0.53      0.90      0.67        20
+        Funk       0.85      0.85      0.85        20
+Samba_Pagode       0.58      0.55      0.56        20
+       blues       0.86      0.95      0.90        20
+   classical       0.89      0.80      0.84        20
+     country       0.76      0.65      0.70        20
+       disco       0.88      0.70      0.78        20
+      hiphop       0.79      0.75      0.77        20
+        jazz       0.88      0.75      0.81        20
+       metal       0.90      0.90      0.90        20
+         pop       0.85      0.85      0.85        20
+      reggae       0.82      0.90      0.86        20
+        rock       0.56      0.45      0.50        20
+
+    accuracy                           0.77       260
+   macro avg       0.78      0.77      0.77       260
+weighted avg       0.78      0.77      0.77       260
+
+Modelo salvo em models/cnn_model.keras

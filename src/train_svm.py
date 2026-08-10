@@ -103,7 +103,7 @@ def main():
     )
     ax.set_title(f"SVM - Matriz de Confusão (acurácia teste: {test_accuracy:.2%})")
     fig.tight_layout()
-    cm_path = RESULTS_DIR / "confusion_matrix.png"
+    cm_path = RESULTS_DIR / "confusion_matrix_svm.png"
     fig.savefig(cm_path, dpi=150)
     print(f"Matriz de confusão salva em {cm_path}")
 
