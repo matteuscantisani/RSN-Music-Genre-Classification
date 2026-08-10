@@ -79,6 +79,7 @@ def make_dataset(X, y, indices, input_shape, shuffle=False):
     ds = ds.map(map_fn, num_parallel_calls=tf.data.AUTOTUNE)
     return ds.prefetch(tf.data.AUTOTUNE)
 
+# implementation based on this paper: https://arxiv.org/html/2509.01762v1
 def build_model(input_shape, n_classes):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=(input_shape))) # input_shape = (128, 130, 1)
