@@ -93,6 +93,28 @@ def build_model(input_shape, n_classes):
     model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
     model.summary()
 
+    return model
+
+def plot_training_curves(history, path):
+    fig, (ax_loss, ax_acc) = plt.subplots(1, 2, figsize=(12, 5))
+    ax_loss.plot(history.history["loss"], label="treino")
+    ax_loss.plot(history.history["val_loss"], label="validação")
+    ax_loss.set_xlabel("Época")
+    ax_loss.set_ylabel("Loss")
+    ax_loss.set_title("Loss")
+    ax_loss.legend()
+
+    ax_acc.plot(history.history["accuracy"], label="treino")
+    ax_acc.plot(history.history["val_accuracy"], label="validação")
+    ax_acc.set_xlabel("Época")
+    ax_acc.set_ylabel("Acurácia")
+    ax_acc.set_title("Acurácia")
+    ax_acc.legend()
+
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+
 def main():
     X, y, classes, track_ids = load_data()
     input_shape = X.shape[1:]                     # (128, 130, 1) derivado dos dados
@@ -116,7 +138,7 @@ def main():
         ),
     ]
 
-    model.fit(
+    history = model.fit(
         train_ds,
         validation_data=val_ds,
         epochs=60,
@@ -146,6 +168,7 @@ def main():
 
     # ---- salvar ----
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    plot_training_curves(history, RESULTS_DIR / "cnn_training_curves.png")
     cm = confusion_matrix(y_true_track, y_pred_track)
     fig, ax = plt.subplots(figsize=(12, 10))
     ConfusionMatrixDisplay(cm, display_labels=classes).plot(ax=ax, cmap="Blues", xticks_rotation=45)
@@ -159,4 +182,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
