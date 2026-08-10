@@ -9,6 +9,7 @@ SCRIPTS = [
     "03_select_segment.py",
     "04_build_dataset.py",
     "05_add_gtzan.py",
+    "06_extract_features.py",
 ]
 
 BASE = Path("data_loader/scripts")

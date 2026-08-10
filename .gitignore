@@ -16,5 +16,8 @@ data_loader/data/gtzan_raw/
 # Dataset montado (regenerado pelos scripts)
 data_loader/data/final_dataset/
 
+# Features extraídas (regeneradas pelo 06_extract_features.py)
+data_loader/data/features/
+
 # Zips (baixados pelo 00_download.py)
 data_loader/data/zip/
