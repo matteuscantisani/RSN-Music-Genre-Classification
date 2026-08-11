@@ -99,7 +99,7 @@ def main():
     cm = confusion_matrix(y_test, y_pred)
     fig, ax = plt.subplots(figsize=(12, 10))
     ConfusionMatrixDisplay(cm, display_labels=classes).plot(
-        ax=ax, cmap="Blues", xticks_rotation=45, colorbar=False
+        ax=ax, cmap="Blues", xticks_rotation=45
     )
     ax.set_title(f"SVM - Matriz de Confusão (acurácia teste: {test_accuracy:.2%})")
     fig.tight_layout()
